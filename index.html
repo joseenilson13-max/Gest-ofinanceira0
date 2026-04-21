@@ -41,6 +41,22 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-item { animation: fadeIn 0.3s ease-out forwards; }
+        .filter-active { border-color: #0077F5 !important; background: rgba(0, 119, 245, 0.1) !important; }
+        
+        /* Estilo para as sugestões */
+        .suggestion-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #a1a1aa;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .suggestion-chip:active { background: #0077F5; color: white; transform: scale(0.95); }
     </style>
 </head>
 <body class="text-zinc-100 min-h-screen pb-32">
@@ -52,18 +68,18 @@
             <button onclick="clearData()" class="mt-5 text-[9px] text-rose-500/70 border border-rose-500/20 px-5 py-1.5 rounded-full bg-rose-500/5 hover:bg-rose-500/20 transition-all uppercase font-bold tracking-wider">Limpar Histórico</button>
         </header>
 
-        <div class="gradient-main-card p-6 rounded-[2.5rem] shadow-2xl mb-8 relative overflow-hidden">
+        <div onclick="setFilter('all')" class="cursor-pointer gradient-main-card p-6 rounded-[2.5rem] shadow-2xl mb-8 relative overflow-hidden active:scale-95 transition-transform">
             <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full"></div>
             <p class="text-blue-100 text-xs uppercase font-semibold tracking-wider">Saldo Disponível</p>
             <h2 id="total-balance" class="text-4xl font-bold mt-2 tracking-tighter text-white">R$ 0,00</h2>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="glass p-4 rounded-2xl border-l-4 border-l-emerald-500">
+            <div id="filter-inc" onclick="setFilter('income')" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-emerald-500 active:scale-95 transition-all">
                 <p class="text-zinc-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Ganhos</p>
                 <p id="total-income" class="text-emerald-500 font-bold text-lg">R$ 0,00</p>
             </div>
-            <div class="glass p-4 rounded-2xl border-l-4 border-l-rose-500">
+            <div id="filter-exp" onclick="setFilter('expense')" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-rose-500 active:scale-95 transition-all">
                 <p class="text-zinc-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Gastos</p>
                 <p id="total-expense" class="text-rose-500 font-bold text-lg">R$ 0,00</p>
             </div>
@@ -74,9 +90,12 @@
         </div>
 
         <section class="pb-6">
-            <h3 class="text-xs font-bold mb-6 uppercase text-zinc-500 tracking-widest">Histórico Recente</h3>
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="history-title" class="text-xs font-bold uppercase text-zinc-500 tracking-widest">Histórico Recente</h3>
+                <button onclick="setFilter('all')" id="btn-reset-filter" class="hidden text-[10px] text-navy-highlight font-bold uppercase">Ver Tudo</button>
+            </div>
             <div id="transaction-list" class="space-y-4 mb-10"></div>
-
+            
             <div class="px-4 mb-8 animate-item">
                 <p class="text-zinc-500 text-center text-sm italic font-medium leading-relaxed">
                     “Gestão financeira não é sobre limitar seus gastos, é sobre libertar suas escolhas.”
@@ -106,13 +125,6 @@
                     <p id="user-plan" class="text-zinc-500 text-sm">Conta Local</p>
                 </div>
             </button>
-            <a href="https://mpago.la/2cixZQ9" target="_blank" class="w-full btn-mercado-pago p-5 rounded-2xl flex items-center justify-between shadow-lg">
-                <div class="flex items-center">
-                    <span class="text-2xl mr-4">🚀</span>
-                    <div class="text-left"><p class="text-white font-bold text-sm">Apoiar o Projeto</p><p class="text-blue-100 text-[10px] uppercase font-semibold">Via Mercado Pago</p></div>
-                </div>
-                <span class="text-white text-xl">➜</span>
-            </a>
             <div class="glass p-4 rounded-2xl flex justify-between items-center"><span class="text-sm font-medium text-zinc-300">Moeda Principal</span><span class="text-navy-highlight font-bold">BRL (R$)</span></div>
         </div>
     </div>
@@ -141,9 +153,9 @@
         </div>
     </div>
 
-    <div id="google-picker-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6">
+    <div id="google-picker-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6 text-center">
         <div class="bg-navy-dark w-full max-w-sm rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl">
-            <h2 class="text-lg font-bold mb-6 text-center">Escolha uma conta</h2>
+            <h2 class="text-lg font-bold mb-6">Escolha uma conta</h2>
             <button onclick="loginUser('José Enilson', 'jose.enilson@gmail.com')" class="w-full glass p-4 rounded-2xl flex items-center mb-3">
                 <div class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center font-bold mr-4 text-white">J</div>
                 <div class="text-left"><p class="font-bold text-sm text-white">José Enilson</p><p class="text-zinc-500 text-[10px]">jose.enilson@gmail.com</p></div>
@@ -164,26 +176,40 @@
     <div id="trans-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6">
         <div class="bg-navy-dark w-full max-w-sm rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl">
             <h2 class="text-xl font-bold mb-6 text-center">Nova Movimentação</h2>
-            <input type="text" id="desc" placeholder="Descrição" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-4 outline-none focus:ring-2 focus:ring-navy-highlight">
-            <input type="number" id="amount" placeholder="Valor R$" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-4 outline-none focus:ring-2 focus:ring-navy-highlight">
-            <div class="grid grid-cols-2 gap-4 mb-8">
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
                 <button onclick="setType('income')" id="btn-inc" class="py-3.5 rounded-2xl border border-zinc-700 text-zinc-300 font-medium">Entrada</button>
                 <button onclick="setType('expense')" id="btn-exp" class="py-3.5 rounded-2xl border border-zinc-700 text-zinc-300 font-medium">Saída</button>
             </div>
-            <div class="flex gap-3"><button onclick="toggleTransactionModal()" class="flex-1 py-4 text-zinc-500">Cancelar</button><button onclick="addTransaction()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold text-white">Salvar</button></div>
+
+            <input type="text" id="desc" placeholder="Descrição" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-4 outline-none focus:ring-2 focus:ring-navy-highlight">
+            
+            <div id="suggestion-container" class="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide"></div>
+
+            <input type="number" id="amount" placeholder="Valor R$" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-8 outline-none focus:ring-2 focus:ring-navy-highlight">
+            
+            <div class="flex gap-3">
+                <button onclick="toggleTransactionModal()" class="flex-1 py-4 text-zinc-500">Cancelar</button>
+                <button onclick="addTransaction()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold text-white">Salvar</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let transactions = JSON.parse(localStorage.getItem('gestao_fin_v7')) || [];
+        let transactions = JSON.parse(localStorage.getItem('gestao_fin_v11')) || [];
         let selectedType = 'income';
+        let currentFilter = 'all';
         let myChart = null;
+
+        const suggestions = {
+            income: ['Salário', 'Variável', 'Venda', 'Bônus', 'Presente', 'Investimento'],
+            expense: ['Supermercado', 'Aluguel', 'Energia', 'Transporte', 'Lanche', 'Saúde', 'Internet', 'Lazer']
+        };
 
         function loadUser() {
             const savedUser = JSON.parse(localStorage.getItem('fin_gestao_user_profile'));
             if (savedUser) {
                 document.getElementById('user-name').innerText = savedUser.name;
-                document.getElementById('user-plan').innerText = savedUser.email;
                 document.getElementById('user-avatar').innerText = savedUser.name.charAt(0).toUpperCase();
             }
         }
@@ -211,10 +237,34 @@
         }
 
         function toggleTransactionModal() { document.getElementById('trans-modal').classList.toggle('active'); }
+        
         function setType(type) {
             selectedType = type;
             document.getElementById('btn-inc').className = type === 'income' ? 'py-3.5 rounded-2xl bg-emerald-500/20 border-2 border-emerald-500 text-emerald-500 font-bold' : 'py-3.5 rounded-2xl border border-zinc-700 text-zinc-300';
             document.getElementById('btn-exp').className = type === 'expense' ? 'py-3.5 rounded-2xl bg-rose-500/20 border-2 border-rose-500 text-rose-500 font-bold' : 'py-3.5 rounded-2xl border border-zinc-700 text-zinc-300';
+            renderSuggestions();
+        }
+
+        function renderSuggestions() {
+            const container = document.getElementById('suggestion-container');
+            container.innerHTML = '';
+            suggestions[selectedType].forEach(text => {
+                const chip = document.createElement('div');
+                chip.className = 'suggestion-chip';
+                chip.innerText = text;
+                chip.onclick = () => { document.getElementById('desc').value = text; };
+                container.appendChild(chip);
+            });
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            render();
+            document.getElementById('filter-inc').classList.toggle('filter-active', filter === 'income');
+            document.getElementById('filter-exp').classList.toggle('filter-active', filter === 'expense');
+            document.getElementById('btn-reset-filter').classList.toggle('hidden', filter === 'all');
+            const titles = { 'all': 'Histórico Recente', 'income': 'Histórico de Ganhos', 'expense': 'Histórico de Gastos' };
+            document.getElementById('history-title').innerText = titles[filter];
         }
 
         function addTransaction() {
@@ -226,17 +276,30 @@
             document.getElementById('desc').value = ''; document.getElementById('amount').value = '';
         }
 
-        function saveAndRender() { localStorage.setItem('gestao_fin_v7', JSON.stringify(transactions)); render(); }
-        function deleteItem(id) { transactions = transactions.filter(t => t.id !== id); saveAndRender(); }
-        function clearData() { if(confirm("Apagar histórico?")) { transactions = []; saveAndRender(); } }
+        function saveAndRender() { localStorage.setItem('gestao_fin_v11', JSON.stringify(transactions)); render(); }
+        
+        function deleteItem(id) { 
+            if(confirm("Deseja mesmo excluir este item?")) {
+                transactions = transactions.filter(t => t.id !== id); 
+                saveAndRender(); 
+            }
+        }
+
+        function clearData() { if(confirm("Deseja mesmo excluir esse histórico?")) { transactions = []; saveAndRender(); } }
 
         function render() {
             const list = document.getElementById('transaction-list');
             list.innerHTML = '';
             let inc = 0, exp = 0;
-            transactions.forEach(t => {
+            transactions.forEach(t => { if(t.amount < 0) exp += Math.abs(t.amount); else inc += t.amount; });
+            const filtered = transactions.filter(t => {
+                if(currentFilter === 'income') return t.amount >= 0;
+                if(currentFilter === 'expense') return t.amount < 0;
+                return true;
+            });
+            if(filtered.length === 0) list.innerHTML = '<p class="text-center text-zinc-600 text-xs py-10">Nenhum registro encontrado.</p>';
+            filtered.forEach(t => {
                 const isExp = t.amount < 0;
-                if(isExp) exp += Math.abs(t.amount); else inc += t.amount;
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-4 glass rounded-2xl border border-white/5 mb-3 animate-item';
                 item.innerHTML = `<div class="flex items-center"><div class="w-10 h-10 ${isExp ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'} rounded-xl flex items-center justify-center mr-3 font-bold">${isExp ? '↓' : '↑'}</div>
