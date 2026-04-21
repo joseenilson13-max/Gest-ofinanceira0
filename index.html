@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Financeira - J.E Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; background-color: #04101F; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.3s ease-out; }
+        
+        .bg-navy-dark { background-color: #04101F; }
+        .bg-navy-base { background-color: #0A2239; }
+        .text-navy-highlight { color: #0077F5; }
+        .bg-navy-highlight { background-color: #0077F5; }
+        .gradient-main-card { background: linear-gradient(135deg, #0A2239 0%, #004D99 100%); }
+        
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #FFD700;
+            letter-spacing: -0.05em;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .btn-mercado-pago {
+            background-color: #009EE3;
+            transition: all 0.3s ease;
+        }
+        .btn-mercado-pago:hover {
+            background-color: #0087C1;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-item { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="text-zinc-100 min-h-screen pb-32">
+
+    <div id="view-home" class="view active max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] shadow-xl border-b border-white/5 relative">
+        <header class="flex flex-col items-center mb-8 pt-4">
+            <div class="logo-text animate-item">J.E</div>
+            <h1 class="text-xl font-bold uppercase tracking-widest text-center text-white">Gestão Financeira</h1>
+            <button onclick="clearData()" class="mt-5 text-[9px] text-rose-500/70 border border-rose-500/20 px-5 py-1.5 rounded-full bg-rose-500/5 hover:bg-rose-500/20 transition-all uppercase font-bold tracking-wider">Limpar Histórico</button>
+        </header>
+
+        <div class="gradient-main-card p-6 rounded-[2.5rem] shadow-2xl mb-8 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full"></div>
+            <p class="text-blue-100 text-xs uppercase font-semibold tracking-wider">Saldo Disponível</p>
+            <h2 id="total-balance" class="text-4xl font-bold mt-2 tracking-tighter text-white">R$ 0,00</h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="glass p-4 rounded-2xl border-l-4 border-l-emerald-500">
+                <p class="text-zinc-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Ganhos</p>
+                <p id="total-income" class="text-emerald-500 font-bold text-lg">R$ 0,00</p>
+            </div>
+            <div class="glass p-4 rounded-2xl border-l-4 border-l-rose-500">
+                <p class="text-zinc-500 text-[10px] uppercase font-bold mb-1 tracking-wider">Gastos</p>
+                <p id="total-expense" class="text-rose-500 font-bold text-lg">R$ 0,00</p>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-[2rem] mb-10 flex flex-col items-center border border-white/5">
+            <div style="width: 170px; height: 170px;"><canvas id="financeChart"></canvas></div>
+        </div>
+
+        <section class="pb-6">
+            <h3 class="text-xs font-bold mb-6 uppercase text-zinc-500 tracking-widest">Histórico Recente</h3>
+            <div id="transaction-list" class="space-y-4 mb-10"></div>
+
+            <div class="px-4 mb-8 animate-item">
+                <p class="text-zinc-500 text-center text-sm italic font-medium leading-relaxed">
+                    “Gestão financeira não é sobre limitar seus gastos, é sobre libertar suas escolhas.”
+                </p>
+            </div>
+
+            <a href="https://mpago.la/2cixZQ9" target="_blank" class="w-full btn-mercado-pago p-5 rounded-3xl flex items-center justify-between shadow-xl animate-item">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-4">💎</span>
+                    <div class="text-left">
+                        <p class="text-white font-bold text-sm">Apoiar Projeto</p>
+                        <p class="text-blue-100 text-[9px] uppercase font-bold tracking-tighter">Mantenha este app online</p>
+                    </div>
+                </div>
+                <span class="text-white text-sm font-bold bg-white/20 px-3 py-1 rounded-full italic">MP</span>
+            </a>
+        </section>
+    </div>
+
+    <div id="view-settings" class="view max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] shadow-xl border-b border-white/5">
+        <header class="mb-8 pt-2"><h1 class="text-2xl font-bold">Configurações</h1></header>
+        <div class="space-y-4">
+            <button onclick="openAuthModal()" class="w-full glass p-6 rounded-3xl flex items-center mb-6 text-left hover:bg-white/5 transition-all">
+                <div id="user-avatar" class="w-16 h-16 bg-navy-highlight rounded-full flex items-center justify-center text-2xl mr-4 shadow-lg font-bold text-white">JE</div>
+                <div>
+                    <h2 id="user-name" class="font-bold text-lg text-white">Usuário FinFlow</h2>
+                    <p id="user-plan" class="text-zinc-500 text-sm">Conta Local</p>
+                </div>
+            </button>
+            <a href="https://mpago.la/2cixZQ9" target="_blank" class="w-full btn-mercado-pago p-5 rounded-2xl flex items-center justify-between shadow-lg">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-4">🚀</span>
+                    <div class="text-left"><p class="text-white font-bold text-sm">Apoiar o Projeto</p><p class="text-blue-100 text-[10px] uppercase font-semibold">Via Mercado Pago</p></div>
+                </div>
+                <span class="text-white text-xl">➜</span>
+            </a>
+            <div class="glass p-4 rounded-2xl flex justify-between items-center"><span class="text-sm font-medium text-zinc-300">Moeda Principal</span><span class="text-navy-highlight font-bold">BRL (R$)</span></div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 glass border-t-0 p-3 flex justify-around items-end rounded-t-[2.5rem] z-40 shadow-2xl shadow-black h-24">
+        <button id="nav-home" onclick="changeView('home')" class="flex flex-col items-center transition-all w-20 pb-2">
+            <span class="text-2xl mb-1">🏠</span>
+            <span class="text-[10px] uppercase font-bold tracking-tighter nav-label">Painel</span>
+        </button>
+        <div class="flex flex-col items-center w-20">
+            <button onclick="toggleTransactionModal()" class="bg-navy-highlight w-14 h-14 rounded-full flex items-center justify-center text-white text-4xl shadow-xl shadow-blue-600/40 hover:scale-110 active:scale-95 transition-all mb-1">+</button>
+            <span class="text-[10px] uppercase font-bold tracking-tighter text-zinc-400 pb-2">Adicionar</span>
+        </div>
+        <button id="nav-settings" onclick="changeView('settings')" class="flex flex-col items-center transition-all w-20 pb-2 text-zinc-500">
+            <span class="text-2xl mb-1">⚙️</span>
+            <span class="text-[10px] uppercase font-bold tracking-tighter nav-label">Configurações</span>
+        </button>
+    </nav>
+
+    <div id="auth-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6">
+        <div class="bg-navy-dark w-full max-w-sm rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl text-center">
+            <h2 class="text-xl font-bold mb-6">Sua Conta</h2>
+            <button onclick="openGooglePicker()" class="w-full bg-white text-black font-bold py-4 rounded-2xl mb-4 flex items-center justify-center gap-2"><img src="https://www.google.com/favicon.ico" class="w-4 h-4"> Logar com Google</button>
+            <button onclick="openCreateAccount()" class="w-full border border-zinc-700 py-4 rounded-2xl mb-4 font-medium text-white">Criar nova conta</button>
+            <button class="w-full py-2 text-zinc-500" onclick="closeAllAuthModals()">Voltar</button>
+        </div>
+    </div>
+
+    <div id="google-picker-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6">
+        <div class="bg-navy-dark w-full max-w-sm rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl">
+            <h2 class="text-lg font-bold mb-6 text-center">Escolha uma conta</h2>
+            <button onclick="loginUser('José Enilson', 'jose.enilson@gmail.com')" class="w-full glass p-4 rounded-2xl flex items-center mb-3">
+                <div class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center font-bold mr-4 text-white">J</div>
+                <div class="text-left"><p class="font-bold text-sm text-white">José Enilson</p><p class="text-zinc-500 text-[10px]">jose.enilson@gmail.com</p></div>
+            </button>
+            <button class="w-full py-2 text-zinc-500 text-sm" onclick="openAuthModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="create-account-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6">
+        <div class="bg-navy-dark w-full max-w-sm rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 text-center">Criar Perfil</h2>
+            <input type="text" id="reg-name" placeholder="Nome Completo" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-4 outline-none focus:ring-2 focus:ring-navy-highlight">
+            <input type="email" id="reg-email" placeholder="E-mail" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-8 outline-none focus:ring-2 focus:ring-navy-highlight">
+            <div class="flex gap-3"><button onclick="openAuthModal()" class="flex-1 py-4 text-zinc-400">Voltar</button><button onclick="registerCustomUser()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold text-white">Salvar</button></div>
+        </div>
+    </div>
+
+    <div id="trans-modal" class="modal fixed inset-0 bg-black/95 backdrop-blur-md z-50 items-center justify-center p-6">
+        <div class="bg-navy-dark w-full max-w-sm rounded-[2.5rem] p-8 border border-zinc-800 shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 text-center">Nova Movimentação</h2>
+            <input type="text" id="desc" placeholder="Descrição" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-4 outline-none focus:ring-2 focus:ring-navy-highlight">
+            <input type="number" id="amount" placeholder="Valor R$" class="w-full bg-navy-base text-white border border-zinc-800 rounded-2xl p-4 mb-4 outline-none focus:ring-2 focus:ring-navy-highlight">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <button onclick="setType('income')" id="btn-inc" class="py-3.5 rounded-2xl border border-zinc-700 text-zinc-300 font-medium">Entrada</button>
+                <button onclick="setType('expense')" id="btn-exp" class="py-3.5 rounded-2xl border border-zinc-700 text-zinc-300 font-medium">Saída</button>
+            </div>
+            <div class="flex gap-3"><button onclick="toggleTransactionModal()" class="flex-1 py-4 text-zinc-500">Cancelar</button><button onclick="addTransaction()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold text-white">Salvar</button></div>
+        </div>
+    </div>
+
+    <script>
+        let transactions = JSON.parse(localStorage.getItem('gestao_fin_v7')) || [];
+        let selectedType = 'income';
+        let myChart = null;
+
+        function loadUser() {
+            const savedUser = JSON.parse(localStorage.getItem('fin_gestao_user_profile'));
+            if (savedUser) {
+                document.getElementById('user-name').innerText = savedUser.name;
+                document.getElementById('user-plan').innerText = savedUser.email;
+                document.getElementById('user-avatar').innerText = savedUser.name.charAt(0).toUpperCase();
+            }
+        }
+
+        function openAuthModal() { closeAllAuthModals(); document.getElementById('auth-modal').classList.add('active'); }
+        function openGooglePicker() { closeAllAuthModals(); document.getElementById('google-picker-modal').classList.add('active'); }
+        function openCreateAccount() { closeAllAuthModals(); document.getElementById('create-account-modal').classList.add('active'); }
+        function closeAllAuthModals() { document.getElementById('auth-modal').classList.remove('active'); document.getElementById('google-picker-modal').classList.remove('active'); document.getElementById('create-account-modal').classList.remove('active'); }
+        function loginUser(name, email) { localStorage.setItem('fin_gestao_user_profile', JSON.stringify({ name, email })); loadUser(); closeAllAuthModals(); }
+        function registerCustomUser() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            if(!name || !email) return;
+            loginUser(name, email);
+        }
+
+        function changeView(view) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+            const isHome = view === 'home';
+            document.getElementById('nav-home').classList.toggle('text-navy-highlight', isHome);
+            document.getElementById('nav-home').classList.toggle('text-zinc-500', !isHome);
+            document.getElementById('nav-settings').classList.toggle('text-navy-highlight', !isHome);
+            document.getElementById('nav-settings').classList.toggle('text-zinc-500', isHome);
+        }
+
+        function toggleTransactionModal() { document.getElementById('trans-modal').classList.toggle('active'); }
+        function setType(type) {
+            selectedType = type;
+            document.getElementById('btn-inc').className = type === 'income' ? 'py-3.5 rounded-2xl bg-emerald-500/20 border-2 border-emerald-500 text-emerald-500 font-bold' : 'py-3.5 rounded-2xl border border-zinc-700 text-zinc-300';
+            document.getElementById('btn-exp').className = type === 'expense' ? 'py-3.5 rounded-2xl bg-rose-500/20 border-2 border-rose-500 text-rose-500 font-bold' : 'py-3.5 rounded-2xl border border-zinc-700 text-zinc-300';
+        }
+
+        function addTransaction() {
+            const desc = document.getElementById('desc').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (!desc || isNaN(amount)) return;
+            transactions.unshift({ id: Date.now(), desc, amount: selectedType === 'expense' ? -Math.abs(amount) : Math.abs(amount), date: new Date().toLocaleDateString('pt-BR') });
+            saveAndRender(); toggleTransactionModal();
+            document.getElementById('desc').value = ''; document.getElementById('amount').value = '';
+        }
+
+        function saveAndRender() { localStorage.setItem('gestao_fin_v7', JSON.stringify(transactions)); render(); }
+        function deleteItem(id) { transactions = transactions.filter(t => t.id !== id); saveAndRender(); }
+        function clearData() { if(confirm("Apagar histórico?")) { transactions = []; saveAndRender(); } }
+
+        function render() {
+            const list = document.getElementById('transaction-list');
+            list.innerHTML = '';
+            let inc = 0, exp = 0;
+            transactions.forEach(t => {
+                const isExp = t.amount < 0;
+                if(isExp) exp += Math.abs(t.amount); else inc += t.amount;
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-4 glass rounded-2xl border border-white/5 mb-3 animate-item';
+                item.innerHTML = `<div class="flex items-center"><div class="w-10 h-10 ${isExp ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'} rounded-xl flex items-center justify-center mr-3 font-bold">${isExp ? '↓' : '↑'}</div>
+                                  <div><p class="font-medium text-sm text-white">${t.desc}</p><p class="text-zinc-500 text-[10px] uppercase">${t.date}</p></div></div>
+                                  <div class="text-right"><p class="${isExp ? 'text-rose-500' : 'text-emerald-500'} font-bold">R$ ${Math.abs(t.amount).toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
+                                  <button onclick="deleteItem(${t.id})" class="text-[9px] text-zinc-600 hover:text-rose-400 font-bold uppercase">Excluir</button></div>`;
+                list.appendChild(item);
+            });
+            document.getElementById('total-balance').innerText = `R$ ${(inc-exp).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+            document.getElementById('total-income').innerText = `R$ ${inc.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+            document.getElementById('total-expense').innerText = `R$ ${exp.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+            if(myChart) {
+                myChart.data.datasets[0].data = [inc, exp];
+                myChart.data.datasets[0].backgroundColor = (inc === 0 && exp === 0) ? ['#18181b', '#18181b'] : ['#10b981','#f43f5e'];
+                myChart.update();
+            }
+        }
+
+        window.onload = () => {
+            loadUser();
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['+', '-'], datasets: [{ data: [0,0], backgroundColor: ['#10b981','#f43f5e'], borderWidth: 0, cutout: '80%' }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
+            setType('income'); render();
+        };
+    </script>
+</body>
+</html>
