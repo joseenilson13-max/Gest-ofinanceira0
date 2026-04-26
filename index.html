@@ -20,6 +20,14 @@
         .bg-navy-highlight { background-color: #0077F5; }
         .gradient-main-card { background: linear-gradient(135deg, #0A2239 0%, #004D99 100%); }
         
+        /* Pop-up Ad Style */
+        #ad-popup { position: fixed; inset: 0; z-index: 100; background: rgba(4, 16, 31, 0.95); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .top-ad-banner {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(0, 119, 245, 0.1) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
         .logo-text {
             font-size: 3rem;
             font-weight: 800;
@@ -31,40 +39,53 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-item { animation: fadeIn 0.3s ease-out forwards; }
         
-        .suggestion-chip {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #a1a1aa;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .suggestion-chip:active { background: #0077F5; color: white; }
+        /* Estilo dos Chips de Sugestão */
+        .suggestion-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #a1a1aa; cursor: pointer; transition: all 0.2s ease; }
+        .suggestion-chip:active { background: rgba(255, 255, 255, 0.15); transform: scale(0.95); }
     </style>
 </head>
-<body class="min-h-screen pb-32">
+<body class="min-h-screen pb-40">
 
-    <div id="view-home" class="view active max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] shadow-xl relative border-b border-white/5">
-        <header class="flex flex-col items-center mb-8 pt-4">
+    <div id="ad-popup">
+        <div class="bg-navy-dark border border-yellow-500/30 w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-item">
+            <div class="text-5xl mb-4">🎁</div>
+            <h2 class="text-xl font-bold text-white mb-2">Oferta Exclusiva</h2>
+            <p class="text-zinc-400 text-sm mb-8">Preparamos algo especial para o seu gerenciamento.</p>
+            <a href="https://meli.la/1q6GdMB" target="_blank" class="block w-full bg-navy-highlight text-white py-4 rounded-2xl font-bold mb-4 shadow-lg">Ver Oferta</a>
+            <button id="close-ad-btn" disabled class="w-full text-zinc-500 text-[10px] font-bold uppercase tracking-widest opacity-40">Aguarde <span id="timer">5</span>s</button>
+        </div>
+    </div>
+
+    <div id="view-home" class="view active max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] shadow-xl relative">
+        <header class="flex flex-col items-center mb-6 pt-4">
             <div class="logo-text animate-item">J.E</div>
             <h1 class="text-xl font-bold uppercase tracking-widest text-white">Gestão Financeira</h1>
-            <button onclick="clearData()" class="mt-5 text-[9px] text-rose-500/70 border border-rose-500/20 px-5 py-1.5 rounded-full bg-rose-500/5 font-bold uppercase tracking-widest">Limpar Tudo</button>
         </header>
 
-        <div class="gradient-main-card p-7 rounded-[2.5rem] shadow-2xl mb-8 relative overflow-hidden">
-            <p class="text-blue-100 text-xs uppercase font-bold tracking-wider">Saldo em Conta</p>
-            <h2 id="total-balance" class="text-4xl font-extrabold mt-2 tracking-tighter text-white">R$ 0,00</h2>
+        <a href="https://meli.la/1q6GdMB" target="_blank" class="top-ad-banner flex items-center justify-between p-4 rounded-[2rem] mb-8 animate-item">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-500/20 p-2.5 rounded-xl text-yellow-500 text-xl">✨</div>
+                <div>
+                    <h4 class="text-[10px] font-bold text-yellow-500 uppercase tracking-[0.15em]">Destaque</h4>
+                    <p class="text-xs text-white font-semibold">Oferta selecionada para você!</p>
+                </div>
+            </div>
+            <div class="bg-white/10 p-2 rounded-full">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </div>
+        </a>
+
+        <div onclick="setFilter('all')" class="cursor-pointer gradient-main-card p-7 rounded-[2.5rem] shadow-2xl mb-8 active:scale-95 transition-transform">
+            <p class="text-zinc-300 text-xs uppercase font-bold tracking-wider">Saldo em Conta</p>
+            <h2 id="total-balance" class="text-4xl font-extrabold mt-2 text-white">R$ 0,00</h2>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="glass p-4 rounded-2xl border-l-4 border-l-emerald-500">
+            <div id="filter-income" onclick="setFilter('income')" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-emerald-500 active:scale-95 transition-all">
                 <p class="text-zinc-500 text-[10px] font-bold uppercase">Entradas</p>
                 <p id="total-income" class="text-emerald-500 font-bold text-lg">R$ 0,00</p>
             </div>
-            <div class="glass p-4 rounded-2xl border-l-4 border-l-rose-500">
+            <div id="filter-expense" onclick="setFilter('expense')" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-rose-500 active:scale-95 transition-all">
                 <p class="text-zinc-500 text-[10px] font-bold uppercase">Saídas</p>
                 <p id="total-expense" class="text-rose-500 font-bold text-lg">R$ 0,00</p>
             </div>
@@ -72,42 +93,40 @@
 
         <div class="glass p-6 rounded-[2.5rem] mb-10 flex flex-col items-center border border-white/5">
             <div style="width: 160px; height: 160px;"><canvas id="financeChart"></canvas></div>
+            <p class="mt-4 text-[10px] font-extrabold text-zinc-500 uppercase tracking-[0.2em]">Histórico</p>
         </div>
 
         <div id="transaction-list" class="space-y-4 mb-10"></div>
+
+        <footer class="text-center py-6">
+            <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Desenvolvido por JE Projetos</p>
+        </footer>
     </div>
 
     <div id="view-settings" class="view max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem]">
         <header class="mb-8 pt-2"><h1 class="text-2xl font-bold">Configurações</h1></header>
-        
-        <div id="profile-card" class="glass p-6 rounded-3xl flex items-center mb-8">
-            <div id="user-avatar" class="w-14 h-14 bg-navy-highlight rounded-full flex items-center justify-center text-xl mr-4 font-bold shadow-lg">?</div>
-            <div>
-                <h2 id="user-name-display" class="font-bold text-white">Modo Visitante</h2>
-                <p id="user-email-display" class="text-zinc-500 text-xs">Dados locais ativos</p>
-            </div>
+        <div class="glass p-6 rounded-3xl flex items-center mb-8">
+            <div id="user-avatar" class="w-14 h-14 bg-navy-highlight rounded-full flex items-center justify-center text-xl mr-4 font-bold">?</div>
+            <div><h2 id="user-name-display" class="font-bold text-white">Visitante</h2><p class="text-zinc-500 text-xs">Dados Locais</p></div>
         </div>
-
-        <div id="auth-actions">
-            <button id="btn-login-trigger" onclick="openModal('auth-modal')" class="w-full bg-navy-highlight py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">Vincular E-mail</button>
-            <button id="btn-logout" onclick="logout()" class="hidden w-full border border-rose-500/30 text-rose-500 py-4 rounded-2xl font-bold">Desconectar</button>
-        </div>
+        <button onclick="openModal('confirm-modal')" class="w-full mt-10 text-[10px] text-rose-500 uppercase font-bold tracking-widest opacity-50 text-center py-4">Apagar todos os dados</button>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 glass p-3 flex justify-around items-end rounded-t-[2.5rem] z-40 h-24 shadow-2xl">
+    <nav class="fixed bottom-0 left-0 right-0 glass p-3 flex justify-around items-end rounded-t-[2.5rem] z-40 h-24">
         <button onclick="changeView('home')" class="flex flex-col items-center w-20 pb-2">🏠<span class="text-[10px] uppercase font-bold mt-1">Painel</span></button>
-        <button onclick="openModal('trans-modal')" class="bg-navy-highlight w-14 h-14 rounded-full flex items-center justify-center text-white text-4xl shadow-xl mb-4 active:scale-90 transition-transform">+</button>
+        <button onclick="openModal('trans-modal')" class="bg-navy-highlight w-14 h-14 rounded-full flex items-center justify-center text-white text-4xl shadow-xl mb-4">+</button>
         <button onclick="changeView('settings')" class="flex flex-col items-center w-20 pb-2 text-zinc-500">⚙️<span class="text-[10px] uppercase font-bold mt-1">Conta</span></button>
     </nav>
 
-    <div id="auth-modal" class="modal">
-        <div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 border border-zinc-800">
-            <h2 class="text-xl font-bold mb-2 text-center">Salvar na Nuvem</h2>
-            <p class="text-zinc-500 text-[10px] text-center mb-6 px-2">Insira seu e-mail para carregar ou salvar seus dados em qualquer lugar.</p>
-            <input type="text" id="login-name" placeholder="Seu Nome" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-4 outline-none">
-            <input type="email" id="login-email" placeholder="seu@email.com" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-6 outline-none">
-            <button onclick="startAuthFlow()" class="w-full bg-navy-highlight py-4 rounded-2xl font-bold">Confirmar</button>
-            <button onclick="closeModals()" class="w-full mt-4 text-zinc-500 text-xs">Cancelar</button>
+    <div id="confirm-modal" class="modal">
+        <div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 border border-rose-500/20 text-center">
+            <div class="text-3xl mb-4">⚠️</div>
+            <h2 class="text-lg font-bold text-white mb-2">Apagar Tudo?</h2>
+            <p class="text-zinc-500 text-xs mb-8">Deseja realmente limpar seu histórico?</p>
+            <div class="flex gap-3">
+                <button onclick="closeModals()" class="flex-1 py-4 bg-zinc-800 rounded-2xl font-bold text-sm">Não</button>
+                <button onclick="clearData()" class="flex-1 py-4 bg-rose-600 rounded-2xl font-bold text-sm">Sim, Apagar</button>
+            </div>
         </div>
     </div>
 
@@ -115,12 +134,16 @@
         <div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 border border-zinc-800">
             <h2 class="text-xl font-bold mb-6 text-center">Nova Movimentação</h2>
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <button onclick="setType('income')" id="btn-inc" class="py-3 rounded-2xl border-2 border-emerald-500/50 bg-emerald-500/10 text-emerald-500 font-bold">Ganho</button>
+                <button onclick="setType('income')" id="btn-inc" class="py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold">Ganho</button>
                 <button onclick="setType('expense')" id="btn-exp" class="py-3 rounded-2xl border border-zinc-700 text-zinc-400">Gasto</button>
             </div>
-            <input type="text" id="desc" placeholder="O que foi?" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-4 outline-none">
-            <div id="suggestion-container" class="flex flex-wrap gap-2 mb-6"></div>
-            <input type="number" id="amount" placeholder="Valor R$" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-8 outline-none">
+            
+            <input type="text" id="desc" placeholder="Descrição" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-4 outline-none text-white">
+            
+            <div id="suggestion-container" class="flex flex-wrap gap-2 mb-6 justify-center"></div>
+            
+            <input type="number" id="amount" placeholder="Valor R$" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-8 outline-none text-white">
+            
             <div class="flex gap-2">
                 <button onclick="closeModals()" class="flex-1 py-4 text-zinc-500 text-sm">Voltar</button>
                 <button onclick="addTransaction()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold">Salvar</button>
@@ -129,181 +152,120 @@
     </div>
 
     <script>
-        let transactions = [];
-        let currentUser = JSON.parse(localStorage.getItem('user_pro_je')) || null;
+        let transactions = JSON.parse(localStorage.getItem('fin_data_pro')) || [];
         let selectedType = 'income';
+        let currentFilter = 'all';
         let myChart = null;
 
+        // LISTA DE SUGESTÕES INTELIGENTES
         const suggestions = {
-            income: ['Salário', 'Pix Recebido', 'Venda', 'Bônus'],
-            expense: ['Aluguel', 'Mercado', 'Combustível', 'Lanche', 'Internet']
+            income: ['Salário', 'Variável', 'Vendas', 'Pix'],
+            expense: ['Supermercado', 'Aluguel', 'Transporte', 'Lanches']
         };
 
-        // --- INICIALIZAÇÃO ---
+        // Temporizador do Pop-up
+        function startAdTimer() {
+            let sec = 5;
+            const timer = document.getElementById('timer');
+            const btn = document.getElementById('close-ad-btn');
+            const interval = setInterval(() => {
+                sec--;
+                if(timer) timer.innerText = sec;
+                if(sec <= 0) {
+                    clearInterval(interval);
+                    btn.innerText = "Fechar";
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.onclick = () => document.getElementById('ad-popup').style.display = 'none';
+                }
+            }, 1000);
+        }
+
         window.onload = () => {
-            initChart();
-            loadAppData();
-            updateAuthUI();
-        };
-
-        function initChart() {
+            startAdTimer();
             const ctx = document.getElementById('financeChart').getContext('2d');
             myChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { datasets: [{ data: [0, 0], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0, cutout: '80%' }] },
+                data: { datasets: [{ data: [1, 1], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0, cutout: '80%' }] },
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
-        }
-
-        // --- LÓGICA DE DADOS ---
-        function loadAppData() {
-            const storageKey = currentUser ? `fin_data_${currentUser.email}` : 'fin_data_local';
-            transactions = JSON.parse(localStorage.getItem(storageKey)) || [];
             render();
-        }
-
-        function saveData() {
-            const storageKey = currentUser ? `fin_data_${currentUser.email}` : 'fin_data_local';
-            localStorage.setItem(storageKey, JSON.stringify(transactions));
-            render();
-        }
+        };
 
         function addTransaction() {
             const desc = document.getElementById('desc').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            
-            if(!desc || !amount) return alert('Preencha os campos!');
-
-            transactions.unshift({
-                id: Date.now(),
-                desc,
-                amount: selectedType === 'expense' ? -Math.abs(amount) : Math.abs(amount),
-                date: new Date().toLocaleDateString('pt-BR')
-            });
-
-            saveData();
-            closeModals();
-            document.getElementById('desc').value = '';
+            const val = parseFloat(document.getElementById('amount').value);
+            if(!desc || !val) return;
+            transactions.unshift({ id: Date.now(), desc, amount: selectedType === 'expense' ? -val : val, date: new Date().toLocaleDateString('pt-BR') });
+            save(); closeModals();
+            document.getElementById('desc').value = ''; 
             document.getElementById('amount').value = '';
         }
+
+        function clearData() { transactions = []; save(); closeModals(); }
+
+        function save() { localStorage.setItem('fin_data_pro', JSON.stringify(transactions)); render(); }
 
         function render() {
             const list = document.getElementById('transaction-list');
             list.innerHTML = '';
-            let inc = 0, exp = 0;
-
+            let bal = 0, inc = 0, exp = 0;
+            
             transactions.forEach(t => {
-                const isExp = t.amount < 0;
-                if(isExp) exp += Math.abs(t.amount); else inc += t.amount;
+                if(t.amount > 0) inc += t.amount; else exp += Math.abs(t.amount);
+                bal += t.amount;
+            });
 
+            const filtered = transactions.filter(t => (currentFilter === 'all' || (currentFilter === 'income' ? t.amount > 0 : t.amount < 0)));
+
+            filtered.forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-4 glass rounded-2xl border border-white/5 animate-item';
-                item.innerHTML = `
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 ${isExp ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'} rounded-xl flex items-center justify-center mr-3 font-bold">${isExp ? '↓' : '↑'}</div>
-                        <div><p class="font-medium text-sm text-white">${t.desc}</p><p class="text-zinc-600 text-[10px] uppercase font-bold">${t.date}</p></div>
-                    </div>
-                    <div class="text-right">
-                        <p class="${isExp ? 'text-rose-500' : 'text-emerald-500'} font-bold">R$ ${Math.abs(t.amount).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
-                        <button onclick="deleteItem(${t.id})" class="text-[9px] text-zinc-600 hover:text-rose-400 font-bold uppercase tracking-tighter">Excluir</button>
-                    </div>
-                `;
+                item.innerHTML = `<div><p class="font-medium text-white">${t.desc}</p><p class="text-zinc-600 text-[10px] uppercase font-bold">${t.date}</p></div>
+                <p class="${t.amount > 0 ? 'text-emerald-500' : 'text-rose-500'} font-bold">R$ ${Math.abs(t.amount).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>`;
                 list.appendChild(item);
             });
 
-            document.getElementById('total-balance').innerText = `R$ ${(inc - exp).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('total-balance').innerText = `R$ ${bal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('total-income').innerText = `R$ ${inc.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('total-expense').innerText = `R$ ${exp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            
-            if(myChart) {
-                myChart.data.datasets[0].data = [inc || 1, exp || (inc ? 0 : 1)];
-                myChart.update();
-            }
+            if(myChart) { myChart.data.datasets[0].data = [inc || 1, exp || (inc ? 0 : 1)]; myChart.update(); }
         }
 
-        // --- LÓGICA DE LOGIN (VINCULAÇÃO) ---
-        function startAuthFlow() {
-            const name = document.getElementById('login-name').value;
-            const email = document.getElementById('login-email').value;
-
-            if(!name || !email.includes('@')) return alert('Insira um e-mail válido!');
-
-            // Simulação de segurança: O sistema aceita o e-mail e muda o banco de dados
-            currentUser = { name, email };
-            localStorage.setItem('user_pro_je', JSON.stringify(currentUser));
-            
-            alert(`Conta vinculada com sucesso!\nSeu histórico agora será salvo sob o e-mail: ${email}`);
-            
-            closeModals();
-            updateAuthUI();
-            loadAppData();
+        function setFilter(f) { 
+            currentFilter = f; 
+            document.getElementById('filter-income').classList.toggle('border-navy-highlight', f === 'income');
+            document.getElementById('filter-expense').classList.toggle('border-navy-highlight', f === 'expense');
+            render(); 
         }
 
-        function logout() {
-            if(confirm("Deseja desconectar? Seus dados permanecem salvos na nuvem desta conta.")) {
-                localStorage.removeItem('user_pro_je');
-                currentUser = null;
-                updateAuthUI();
-                loadAppData();
-            }
-        }
-
-        function updateAuthUI() {
-            const isLogged = !!currentUser;
-            document.getElementById('btn-login-trigger').classList.toggle('hidden', isLogged);
-            document.getElementById('btn-logout').classList.toggle('hidden', !isLogged);
-            document.getElementById('user-name-display').innerText = isLogged ? currentUser.name : "Modo Visitante";
-            document.getElementById('user-email-display').innerText = isLogged ? currentUser.email : "Dados locais ativos";
-            document.getElementById('user-avatar').innerText = isLogged ? currentUser.name.charAt(0).toUpperCase() : "?";
-        }
-
-        // --- UTILITÁRIOS ---
-        function changeView(v) {
-            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-            document.getElementById(`view-${v}`).classList.add('active');
-        }
-
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-            if(id === 'trans-modal') renderSuggestions();
-        }
-
-        function closeModals() {
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        }
-
-        function setType(type) {
-            selectedType = type;
-            document.getElementById('btn-inc').className = type === 'income' ? 'py-3 rounded-2xl border-2 border-emerald-500/50 bg-emerald-500/10 text-emerald-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400';
-            document.getElementById('btn-exp').className = type === 'expense' ? 'py-3 rounded-2xl border-2 border-rose-500/50 bg-rose-500/10 text-rose-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400';
-            renderSuggestions();
+        function setType(t) { 
+            selectedType = t; 
+            document.getElementById('btn-inc').className = t === 'income' ? 'py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400';
+            document.getElementById('btn-exp').className = t === 'expense' ? 'py-3 rounded-2xl border-2 border-rose-500 bg-rose-500/10 text-rose-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400';
+            renderSuggestions(); // Atualiza as sugestões ao trocar o tipo
         }
 
         function renderSuggestions() {
-            const cont = document.getElementById('suggestion-container');
-            cont.innerHTML = '';
+            const container = document.getElementById('suggestion-container');
+            container.innerHTML = '';
             suggestions[selectedType].forEach(s => {
                 const chip = document.createElement('div');
                 chip.className = 'suggestion-chip';
                 chip.innerText = s;
                 chip.onclick = () => document.getElementById('desc').value = s;
-                cont.appendChild(chip);
+                container.appendChild(chip);
             });
         }
 
-        function deleteItem(id) {
-            if(confirm("Excluir este item?")) {
-                transactions = transactions.filter(t => t.id !== id);
-                saveData();
-            }
+        function changeView(v) { document.querySelectorAll('.view').forEach(view => view.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); }
+        
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id === 'trans-modal') renderSuggestions(); // Carrega as sugestões ao abrir
         }
-
-        function clearData() {
-            if(confirm("Isso apagará o histórico atual. Continuar?")) {
-                transactions = [];
-                saveData();
-            }
-        }
+        
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
     </script>
 </body>
 </html>
