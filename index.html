@@ -73,7 +73,7 @@
     <div id="view-settings" class="view max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] min-h-[80vh]">
         <header class="mb-8 pt-4">
             <h1 class="text-2xl font-bold text-white">Configurações</h1>
-            <p class="text-zinc-500 text-xs uppercase tracking-widest mt-1">Gerencie seus dados</p>
+            <p class="text-zinc-500 text-xs uppercase tracking-widest mt-1">Gerencie seus dados e app</p>
         </header>
 
         <div class="glass p-6 rounded-3xl flex items-center mb-8 border border-white/10">
@@ -85,6 +85,17 @@
         </div>
 
         <div class="space-y-4">
+            <a href="https://www.mediafire.com/file/nd67z52th4ccbda/GestaoFinanceira1.apk/file" target="_blank" class="w-full glass p-5 rounded-2xl flex justify-between items-center border border-emerald-500/20 hover:bg-emerald-500/5 transition-all active:scale-95">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">📲</span>
+                    <div class="text-left">
+                        <span class="block text-sm font-bold text-emerald-500 uppercase tracking-tighter">Baixar Aplicativo</span>
+                        <span class="block text-[10px] text-zinc-500">Versão Android APK</span>
+                    </div>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4m4-10 5 5 5-5m-5-9v14"/></svg>
+            </a>
+
             <div class="glass p-4 rounded-2xl flex justify-between items-center opacity-60">
                 <span class="text-sm font-medium">Exportar Dados (CSV)</span>
                 <span class="text-[10px] bg-zinc-800 px-2 py-1 rounded text-zinc-400">EM BREVE</span>
@@ -98,7 +109,7 @@
 
         <footer class="text-center mt-20">
             <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Desenvolvido por JE Projetos</p>
-            <p class="text-[8px] text-zinc-700 mt-2">Versão 7.0.2 - Pará, Brasil</p>
+            <p class="text-[8px] text-zinc-700 mt-2">Versão 7.1.0 - Castanhal, PA</p>
         </footer>
     </div>
 
@@ -158,8 +169,6 @@
         function changeView(v) {
             document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
             document.getElementById(`view-${v}`).classList.add('active');
-            
-            // Atualiza cor dos botões de navegação
             document.getElementById('nav-home').classList.toggle('text-navy-highlight', v === 'home');
             document.getElementById('nav-home').classList.toggle('text-zinc-500', v !== 'home');
             document.getElementById('nav-settings').classList.toggle('text-navy-highlight', v === 'settings');
@@ -187,6 +196,7 @@
 
         function render() {
             const list = document.getElementById('transaction-list');
+            if(!list) return;
             list.innerHTML = '';
             const filteredData = showAllTransactions ? transactions : transactions.filter(t => t.month === currentMonth && t.year === currentYear);
             let bal = 0, inc = 0, exp = 0; const catTotals = {};
@@ -220,7 +230,7 @@
         function clearAllData() { transactions = []; save(); closeModals(); changeView('home'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
         function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function updateChart(totals) { const labels = Object.keys(totals); const data = Object.values(totals); const colors = labels.map(l => categoryColors[l] || '#475569'); myChart.data.labels = labels; myChart.data.datasets[0].data = data.length ? data : [1]; myChart.data.datasets[0].backgroundColor = data.length ? colors : ['#1e293b']; myChart.update(); }
+        function updateChart(totals) { const labels = Object.keys(totals); const data = Object.values(totals); const colors = labels.map(l => categoryColors[l] || '#475569'); if(myChart) { myChart.data.labels = labels; myChart.data.datasets[0].data = data.length ? data : [1]; myChart.data.datasets[0].backgroundColor = data.length ? colors : ['#1e293b']; myChart.update(); } }
         function askEdit(id) { pendingActionId = id; openModal('confirm-edit-modal'); document.getElementById('confirm-edit-btn').onclick = () => { closeModals(); openTransactionModal(pendingActionId); }; }
         function askDelete(id) { pendingActionId = id; openModal('confirm-delete-modal'); document.getElementById('confirm-delete-btn').onclick = () => { transactions = transactions.filter(t => t.id !== pendingActionId); save(); closeModals(); }; }
         function openTransactionModal(id = null) { editingId = id; if(id) { const t = transactions.find(x => x.id === id); document.getElementById('desc').value = t.desc; document.getElementById('amount').value = Math.abs(t.amount); setType(t.amount > 0 ? 'income' : 'expense'); } else { document.getElementById('desc').value = ''; document.getElementById('amount').value = ''; setType('income'); } openModal('trans-modal'); }
