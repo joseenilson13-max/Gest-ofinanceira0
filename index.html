@@ -20,41 +20,18 @@
         .bg-navy-highlight { background-color: #0077F5; }
         .gradient-main-card { background: linear-gradient(135deg, #0A2239 0%, #004D99 100%); }
         
-        /* Pop-up Ad Style */
-        #ad-popup { position: fixed; inset: 0; z-index: 100; background: rgba(4, 16, 31, 0.95); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        
-        .top-ad-banner {
-            background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(0, 119, 245, 0.1) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-        }
-
-        .logo-text {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #FFD700;
-            letter-spacing: -0.05em;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
-
+        .logo-text { font-size: 3rem; font-weight: 800; color: #FFD700; letter-spacing: -0.05em; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-item { animation: fadeIn 0.3s ease-out forwards; }
         
-        /* Estilo dos Chips de Sugestão */
-        .suggestion-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #a1a1aa; cursor: pointer; transition: all 0.2s ease; }
-        .suggestion-chip:active { background: rgba(255, 255, 255, 0.15); transform: scale(0.95); }
+        .month-selector { display: flex; overflow-x: auto; gap: 12px; padding: 10px 0; scrollbar-width: none; }
+        .month-pill { padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; transition: all 0.3s; color: #64748b; border: 1px solid transparent; cursor: pointer; }
+        .month-pill.active { background: #0077F5; color: white; box-shadow: 0 4px 15px rgba(0, 119, 245, 0.3); }
+        .filter-active { border: 2px solid #0077F5 !important; background: rgba(0, 119, 245, 0.1) !important; }
+        .suggestion-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #a1a1aa; cursor: pointer; }
     </style>
 </head>
 <body class="min-h-screen pb-40">
-
-    <div id="ad-popup">
-        <div class="bg-navy-dark border border-yellow-500/30 w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-item">
-            <div class="text-5xl mb-4">🎁</div>
-            <h2 class="text-xl font-bold text-white mb-2">Oferta Exclusiva</h2>
-            <p class="text-zinc-400 text-sm mb-8">Preparamos algo especial para o seu gerenciamento.</p>
-            <a href="https://meli.la/1q6GdMB" target="_blank" class="block w-full bg-navy-highlight text-white py-4 rounded-2xl font-bold mb-4 shadow-lg">Ver Oferta</a>
-            <button id="close-ad-btn" disabled class="w-full text-zinc-500 text-[10px] font-bold uppercase tracking-widest opacity-40">Aguarde <span id="timer">5</span>s</button>
-        </div>
-    </div>
 
     <div id="view-home" class="view active max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] shadow-xl relative">
         <header class="flex flex-col items-center mb-6 pt-4">
@@ -62,210 +39,194 @@
             <h1 class="text-xl font-bold uppercase tracking-widest text-white">Gestão Financeira</h1>
         </header>
 
-        <a href="https://meli.la/1q6GdMB" target="_blank" class="top-ad-banner flex items-center justify-between p-4 rounded-[2rem] mb-8 animate-item">
-            <div class="flex items-center gap-3">
-                <div class="bg-yellow-500/20 p-2.5 rounded-xl text-yellow-500 text-xl">✨</div>
-                <div>
-                    <h4 class="text-[10px] font-bold text-yellow-500 uppercase tracking-[0.15em]">Destaque</h4>
-                    <p class="text-xs text-white font-semibold">Oferta selecionada para você!</p>
-                </div>
-            </div>
-            <div class="bg-white/10 p-2 rounded-full">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-            </div>
-        </a>
+        <div id="month-list" class="month-selector mb-6"></div>
 
-        <div onclick="setFilter('all')" class="cursor-pointer gradient-main-card p-7 rounded-[2.5rem] shadow-2xl mb-8 active:scale-95 transition-transform">
-            <p class="text-zinc-300 text-xs uppercase font-bold tracking-wider">Saldo em Conta</p>
+        <div class="gradient-main-card p-7 rounded-[2.5rem] shadow-2xl mb-8 transition-transform active:scale-95">
+            <p id="label-balance" class="text-zinc-300 text-xs uppercase font-bold tracking-wider">Saldo do Período</p>
             <h2 id="total-balance" class="text-4xl font-extrabold mt-2 text-white">R$ 0,00</h2>
         </div>
 
+        <div class="flex justify-between items-center mb-4 px-2">
+            <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest">Filtrar Lista</h3>
+            <button onclick="setFilter('all')" id="filter-all" class="text-[10px] font-bold text-navy-highlight uppercase underline decoration-2 underline-offset-4">Ver Todos</button>
+        </div>
+        
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div id="filter-income" onclick="setFilter('income')" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-emerald-500 active:scale-95 transition-all">
+            <div onclick="setFilter('income')" id="card-income" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-emerald-500 transition-all active:scale-95">
                 <p class="text-zinc-500 text-[10px] font-bold uppercase">Entradas</p>
                 <p id="total-income" class="text-emerald-500 font-bold text-lg">R$ 0,00</p>
             </div>
-            <div id="filter-expense" onclick="setFilter('expense')" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-rose-500 active:scale-95 transition-all">
+            <div onclick="setFilter('expense')" id="card-expense" class="cursor-pointer glass p-4 rounded-2xl border-l-4 border-l-rose-500 transition-all active:scale-95">
                 <p class="text-zinc-500 text-[10px] font-bold uppercase">Saídas</p>
                 <p id="total-expense" class="text-rose-500 font-bold text-lg">R$ 0,00</p>
             </div>
         </div>
 
         <div class="glass p-6 rounded-[2.5rem] mb-10 flex flex-col items-center border border-white/5">
-            <div style="width: 160px; height: 160px;"><canvas id="financeChart"></canvas></div>
-            <p class="mt-4 text-[10px] font-extrabold text-zinc-500 uppercase tracking-[0.2em]">Histórico</p>
+            <div style="width: 180px; height: 180px;"><canvas id="financeChart"></canvas></div>
+            <p class="mt-4 text-[10px] font-extrabold text-zinc-500 uppercase tracking-[0.2em]">Gastos por Categoria</p>
         </div>
 
-        <div id="transaction-list" class="space-y-4 mb-10"></div>
+        <div id="transaction-list" class="space-y-4"></div>
+    </div>
 
-        <footer class="text-center py-6">
+    <div id="view-settings" class="view max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem] min-h-[80vh]">
+        <header class="mb-8 pt-4">
+            <h1 class="text-2xl font-bold text-white">Configurações</h1>
+            <p class="text-zinc-500 text-xs uppercase tracking-widest mt-1">Gerencie seus dados</p>
+        </header>
+
+        <div class="glass p-6 rounded-3xl flex items-center mb-8 border border-white/10">
+            <div class="w-14 h-14 bg-navy-highlight rounded-full flex items-center justify-center text-xl mr-4 font-bold text-white">JE</div>
+            <div>
+                <h2 class="font-bold text-white">Usuário Local</h2>
+                <p class="text-zinc-500 text-xs">Armazenamento offline ativo</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="glass p-4 rounded-2xl flex justify-between items-center opacity-60">
+                <span class="text-sm font-medium">Exportar Dados (CSV)</span>
+                <span class="text-[10px] bg-zinc-800 px-2 py-1 rounded text-zinc-400">EM BREVE</span>
+            </div>
+            
+            <button onclick="openModal('confirm-clear-modal')" class="w-full glass p-4 rounded-2xl flex justify-between items-center border-rose-500/20 hover:bg-rose-500/5 transition-colors">
+                <span class="text-sm font-medium text-rose-500">Limpar todo o histórico</span>
+                <span class="text-lg">⚠️</span>
+            </button>
+        </div>
+
+        <footer class="text-center mt-20">
             <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Desenvolvido por JE Projetos</p>
+            <p class="text-[8px] text-zinc-700 mt-2">Versão 7.0.2 - Pará, Brasil</p>
         </footer>
     </div>
 
-    <div id="view-settings" class="view max-w-md mx-auto p-6 bg-navy-base rounded-b-[3rem]">
-        <header class="mb-8 pt-2"><h1 class="text-2xl font-bold">Configurações</h1></header>
-        <div class="glass p-6 rounded-3xl flex items-center mb-8">
-            <div id="user-avatar" class="w-14 h-14 bg-navy-highlight rounded-full flex items-center justify-center text-xl mr-4 font-bold">?</div>
-            <div><h2 id="user-name-display" class="font-bold text-white">Visitante</h2><p class="text-zinc-500 text-xs">Dados Locais</p></div>
-        </div>
-        <button onclick="openModal('confirm-modal')" class="w-full mt-10 text-[10px] text-rose-500 uppercase font-bold tracking-widest opacity-50 text-center py-4">Apagar todos os dados</button>
-    </div>
-
     <nav class="fixed bottom-0 left-0 right-0 glass p-3 flex justify-around items-end rounded-t-[2.5rem] z-40 h-24">
-        <button onclick="changeView('home')" class="flex flex-col items-center w-20 pb-2">🏠<span class="text-[10px] uppercase font-bold mt-1">Painel</span></button>
-        <button onclick="openModal('trans-modal')" class="bg-navy-highlight w-14 h-14 rounded-full flex items-center justify-center text-white text-4xl shadow-xl mb-4">+</button>
-        <button onclick="changeView('settings')" class="flex flex-col items-center w-20 pb-2 text-zinc-500">⚙️<span class="text-[10px] uppercase font-bold mt-1">Conta</span></button>
+        <button onclick="changeView('home')" id="nav-home" class="flex flex-col items-center w-20 pb-2 text-navy-highlight">🏠<span class="text-[10px] uppercase font-bold mt-1">Painel</span></button>
+        <button onclick="openTransactionModal()" class="bg-navy-highlight w-14 h-14 rounded-full flex items-center justify-center text-white text-4xl shadow-xl mb-4 active:scale-90 transition-transform">+</button>
+        <button onclick="changeView('settings')" id="nav-settings" class="flex flex-col items-center w-20 pb-2 text-zinc-500">⚙️<span class="text-[10px] uppercase font-bold mt-1">Conta</span></button>
     </nav>
 
-    <div id="confirm-modal" class="modal">
+    <div id="confirm-clear-modal" class="modal">
         <div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 border border-rose-500/20 text-center">
             <div class="text-3xl mb-4">⚠️</div>
-            <h2 class="text-lg font-bold text-white mb-2">Apagar Tudo?</h2>
-            <p class="text-zinc-500 text-xs mb-8">Deseja realmente limpar seu histórico?</p>
+            <h2 class="text-lg font-bold text-white mb-2">Apagar tudo?</h2>
+            <p class="text-zinc-500 text-xs mb-8">Isso removerá permanentemente todas as suas transações e categorias.</p>
             <div class="flex gap-3">
-                <button onclick="closeModals()" class="flex-1 py-4 bg-zinc-800 rounded-2xl font-bold text-sm">Não</button>
-                <button onclick="clearData()" class="flex-1 py-4 bg-rose-600 rounded-2xl font-bold text-sm">Sim, Apagar</button>
+                <button onclick="closeModals()" class="flex-1 py-4 bg-zinc-800 rounded-2xl font-bold text-sm text-white">Cancelar</button>
+                <button onclick="clearAllData()" class="flex-1 py-4 bg-rose-600 rounded-2xl font-bold text-sm text-white">Sim, Limpar</button>
             </div>
         </div>
     </div>
 
     <div id="trans-modal" class="modal">
         <div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 border border-zinc-800">
-            <h2 class="text-xl font-bold mb-6 text-center">Nova Movimentação</h2>
+            <h2 id="modal-title" class="text-xl font-bold mb-6 text-center text-white">Movimentação</h2>
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <button onclick="setType('income')" id="btn-inc" class="py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold">Ganho</button>
                 <button onclick="setType('expense')" id="btn-exp" class="py-3 rounded-2xl border border-zinc-700 text-zinc-400">Gasto</button>
             </div>
-            
             <input type="text" id="desc" placeholder="Descrição" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-4 outline-none text-white">
-            
             <div id="suggestion-container" class="flex flex-wrap gap-2 mb-6 justify-center"></div>
-            
             <input type="number" id="amount" placeholder="Valor R$" class="w-full bg-navy-base border border-zinc-800 rounded-2xl p-4 mb-8 outline-none text-white">
-            
             <div class="flex gap-2">
-                <button onclick="closeModals()" class="flex-1 py-4 text-zinc-500 text-sm">Voltar</button>
-                <button onclick="addTransaction()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold">Salvar</button>
+                <button onclick="closeModals()" class="flex-1 py-4 text-zinc-500 text-sm">Cancelar</button>
+                <button onclick="handleSave()" class="flex-1 bg-navy-highlight py-4 rounded-2xl font-bold text-white">Salvar</button>
             </div>
         </div>
     </div>
 
+    <div id="confirm-delete-modal" class="modal"><div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 text-center"><h2 class="text-white font-bold mb-8 text-lg">Excluir item?</h2><div class="flex gap-3"><button onclick="closeModals()" class="flex-1 py-4 bg-zinc-800 rounded-2xl text-sm">Não</button><button id="confirm-delete-btn" class="flex-1 py-4 bg-rose-600 rounded-2xl text-sm">Sim</button></div></div></div>
+    <div id="confirm-edit-modal" class="modal"><div class="bg-navy-dark w-full max-w-xs rounded-[2.5rem] p-8 text-center"><h2 class="text-white font-bold mb-8 text-lg">Editar item?</h2><div class="flex gap-3"><button onclick="closeModals()" class="flex-1 py-4 bg-zinc-800 rounded-2xl text-sm text-zinc-400">Não</button><button id="confirm-edit-btn" class="flex-1 py-4 bg-navy-highlight rounded-2xl text-sm text-white font-bold">Sim</button></div></div></div>
+
     <script>
-        let transactions = JSON.parse(localStorage.getItem('fin_data_pro')) || [];
-        let selectedType = 'income';
-        let currentFilter = 'all';
-        let myChart = null;
+        let transactions = JSON.parse(localStorage.getItem('fin_data_pro_v7')) || [];
+        let selectedType = 'income', currentFilter = 'all', currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
+        let showAllTransactions = false, pendingActionId = null, editingId = null, myChart = null;
 
-        // LISTA DE SUGESTÕES INTELIGENTES
-        const suggestions = {
-            income: ['Salário', 'Variável', 'Vendas', 'Pix'],
-            expense: ['Supermercado', 'Aluguel', 'Transporte', 'Lanches']
-        };
+        const categoryColors = { 'Supermercado': '#FF6384', 'Aluguel': '#36A2EB', 'Transporte': '#FFCE56', 'Lanche': '#4BC0C0', 'Saúde': '#9966FF', 'Educação': '#FF9F40', 'Lazer': '#C9CBCF', 'Salário': '#10b981', 'Variável': '#34d399', 'Vendas': '#059669', 'Pix': '#6ee7b7', 'Outros': '#475569' };
+        const suggestions = { income: ['Salário', 'Variável', 'Vendas', 'Pix'], expense: ['Supermercado', 'Aluguel', 'Transporte', 'Lanche'] };
 
-        // Temporizador do Pop-up
-        function startAdTimer() {
-            let sec = 5;
-            const timer = document.getElementById('timer');
-            const btn = document.getElementById('close-ad-btn');
-            const interval = setInterval(() => {
-                sec--;
-                if(timer) timer.innerText = sec;
-                if(sec <= 0) {
-                    clearInterval(interval);
-                    btn.innerText = "Fechar";
-                    btn.disabled = false;
-                    btn.style.opacity = "1";
-                    btn.onclick = () => document.getElementById('ad-popup').style.display = 'none';
-                }
-            }, 1000);
-        }
+        window.onload = () => { initChart(); renderMonths(); render(); };
 
-        window.onload = () => {
-            startAdTimer();
+        function initChart() {
             const ctx = document.getElementById('financeChart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: { datasets: [{ data: [1, 1], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0, cutout: '80%' }] },
-                options: { responsive: true, plugins: { legend: { display: false } } }
-            });
-            render();
-        };
-
-        function addTransaction() {
-            const desc = document.getElementById('desc').value;
-            const val = parseFloat(document.getElementById('amount').value);
-            if(!desc || !val) return;
-            transactions.unshift({ id: Date.now(), desc, amount: selectedType === 'expense' ? -val : val, date: new Date().toLocaleDateString('pt-BR') });
-            save(); closeModals();
-            document.getElementById('desc').value = ''; 
-            document.getElementById('amount').value = '';
+            myChart = new Chart(ctx, { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0, cutout: '75%' }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
         }
 
-        function clearData() { transactions = []; save(); closeModals(); }
+        function changeView(v) {
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.getElementById(`view-${v}`).classList.add('active');
+            
+            // Atualiza cor dos botões de navegação
+            document.getElementById('nav-home').classList.toggle('text-navy-highlight', v === 'home');
+            document.getElementById('nav-home').classList.toggle('text-zinc-500', v !== 'home');
+            document.getElementById('nav-settings').classList.toggle('text-navy-highlight', v === 'settings');
+            document.getElementById('nav-settings').classList.toggle('text-zinc-500', v !== 'settings');
+        }
 
-        function save() { localStorage.setItem('fin_data_pro', JSON.stringify(transactions)); render(); }
+        function renderMonths() {
+            const list = document.getElementById('month-list');
+            list.innerHTML = '';
+            const allBtn = document.createElement('div');
+            allBtn.className = `month-pill ${showAllTransactions ? 'active' : ''}`;
+            allBtn.innerText = "Histórico Geral";
+            allBtn.onclick = () => { showAllTransactions = true; renderMonths(); render(); };
+            list.appendChild(allBtn);
+
+            const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+            months.forEach((m, i) => {
+                const pill = document.createElement('div');
+                pill.className = `month-pill ${(!showAllTransactions && i === currentMonth) ? 'active' : ''}`;
+                pill.innerText = `${m} ${currentYear}`;
+                pill.onclick = () => { showAllTransactions = false; currentMonth = i; renderMonths(); render(); };
+                list.appendChild(pill);
+            });
+        }
 
         function render() {
             const list = document.getElementById('transaction-list');
             list.innerHTML = '';
-            let bal = 0, inc = 0, exp = 0;
-            
-            transactions.forEach(t => {
+            const filteredData = showAllTransactions ? transactions : transactions.filter(t => t.month === currentMonth && t.year === currentYear);
+            let bal = 0, inc = 0, exp = 0; const catTotals = {};
+
+            filteredData.forEach(t => {
                 if(t.amount > 0) inc += t.amount; else exp += Math.abs(t.amount);
                 bal += t.amount;
+                if(t.amount < 0) catTotals[t.category] = (catTotals[t.category] || 0) + Math.abs(t.amount);
             });
 
-            const filtered = transactions.filter(t => (currentFilter === 'all' || (currentFilter === 'income' ? t.amount > 0 : t.amount < 0)));
+            const displayList = currentFilter === 'all' ? filteredData : filteredData.filter(t => (currentFilter === 'income' ? t.amount > 0 : t.amount < 0));
 
-            filtered.forEach(t => {
+            displayList.forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-4 glass rounded-2xl border border-white/5 animate-item';
-                item.innerHTML = `<div><p class="font-medium text-white">${t.desc}</p><p class="text-zinc-600 text-[10px] uppercase font-bold">${t.date}</p></div>
-                <p class="${t.amount > 0 ? 'text-emerald-500' : 'text-rose-500'} font-bold">R$ ${Math.abs(t.amount).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>`;
+                item.innerHTML = `
+                    <div onclick="askEdit(${t.id})" class="flex-1"><p class="font-medium text-white">${t.desc}</p><p class="text-zinc-600 text-[10px] uppercase font-bold">${t.date} • ${t.category}</p></div>
+                    <div class="flex items-center gap-4"><p class="${t.amount > 0 ? 'text-emerald-500' : 'text-rose-500'} font-bold">R$ ${Math.abs(t.amount).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p><button onclick="askDelete(${t.id})" class="p-2 text-zinc-700 hover:text-rose-500">🗑️</button></div>`;
                 list.appendChild(item);
             });
 
+            document.getElementById('label-balance').innerText = showAllTransactions ? "Saldo Total Acumulado" : "Saldo do Mês";
             document.getElementById('total-balance').innerText = `R$ ${bal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('total-income').innerText = `R$ ${inc.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('total-expense').innerText = `R$ ${exp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            if(myChart) { myChart.data.datasets[0].data = [inc || 1, exp || (inc ? 0 : 1)]; myChart.update(); }
+            updateChart(catTotals);
         }
 
-        function setFilter(f) { 
-            currentFilter = f; 
-            document.getElementById('filter-income').classList.toggle('border-navy-highlight', f === 'income');
-            document.getElementById('filter-expense').classList.toggle('border-navy-highlight', f === 'expense');
-            render(); 
-        }
-
-        function setType(t) { 
-            selectedType = t; 
-            document.getElementById('btn-inc').className = t === 'income' ? 'py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400';
-            document.getElementById('btn-exp').className = t === 'expense' ? 'py-3 rounded-2xl border-2 border-rose-500 bg-rose-500/10 text-rose-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400';
-            renderSuggestions(); // Atualiza as sugestões ao trocar o tipo
-        }
-
-        function renderSuggestions() {
-            const container = document.getElementById('suggestion-container');
-            container.innerHTML = '';
-            suggestions[selectedType].forEach(s => {
-                const chip = document.createElement('div');
-                chip.className = 'suggestion-chip';
-                chip.innerText = s;
-                chip.onclick = () => document.getElementById('desc').value = s;
-                container.appendChild(chip);
-            });
-        }
-
-        function changeView(v) { document.querySelectorAll('.view').forEach(view => view.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); }
-        
-        function openModal(id) { 
-            document.getElementById(id).classList.add('active'); 
-            if(id === 'trans-modal') renderSuggestions(); // Carrega as sugestões ao abrir
-        }
-        
+        function setFilter(f) { currentFilter = f; document.getElementById('card-income').classList.toggle('filter-active', f === 'income'); document.getElementById('card-expense').classList.toggle('filter-active', f === 'expense'); render(); }
+        function save() { localStorage.setItem('fin_data_pro_v7', JSON.stringify(transactions)); render(); }
+        function clearAllData() { transactions = []; save(); closeModals(); changeView('home'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function updateChart(totals) { const labels = Object.keys(totals); const data = Object.values(totals); const colors = labels.map(l => categoryColors[l] || '#475569'); myChart.data.labels = labels; myChart.data.datasets[0].data = data.length ? data : [1]; myChart.data.datasets[0].backgroundColor = data.length ? colors : ['#1e293b']; myChart.update(); }
+        function askEdit(id) { pendingActionId = id; openModal('confirm-edit-modal'); document.getElementById('confirm-edit-btn').onclick = () => { closeModals(); openTransactionModal(pendingActionId); }; }
+        function askDelete(id) { pendingActionId = id; openModal('confirm-delete-modal'); document.getElementById('confirm-delete-btn').onclick = () => { transactions = transactions.filter(t => t.id !== pendingActionId); save(); closeModals(); }; }
+        function openTransactionModal(id = null) { editingId = id; if(id) { const t = transactions.find(x => x.id === id); document.getElementById('desc').value = t.desc; document.getElementById('amount').value = Math.abs(t.amount); setType(t.amount > 0 ? 'income' : 'expense'); } else { document.getElementById('desc').value = ''; document.getElementById('amount').value = ''; setType('income'); } openModal('trans-modal'); }
+        function handleSave() { const desc = document.getElementById('desc').value; const val = parseFloat(document.getElementById('amount').value); if(!desc || !val) return; const category = suggestions[selectedType].includes(desc) ? desc : 'Outros'; if(editingId) { const index = transactions.findIndex(t => t.id === editingId); transactions[index] = { ...transactions[index], desc, amount: selectedType === 'expense' ? -val : val, category }; } else { transactions.unshift({ id: Date.now(), desc, amount: selectedType === 'expense' ? -val : val, category, month: currentMonth, year: currentYear, date: new Date().toLocaleDateString('pt-BR') }); } save(); closeModals(); }
+        function setType(t) { selectedType = t; document.getElementById('btn-inc').className = t === 'income' ? 'py-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/10 text-emerald-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400'; document.getElementById('btn-exp').className = t === 'expense' ? 'py-3 rounded-2xl border-2 border-rose-500 bg-rose-500/10 text-rose-500 font-bold' : 'py-3 rounded-2xl border border-zinc-700 text-zinc-400'; renderSuggestions(); }
+        function renderSuggestions() { const container = document.getElementById('suggestion-container'); container.innerHTML = ''; suggestions[selectedType].forEach(s => { const chip = document.createElement('div'); chip.className = 'suggestion-chip'; chip.innerText = s; chip.onclick = () => document.getElementById('desc').value = s; container.appendChild(chip); }); }
     </script>
 </body>
 </html>
